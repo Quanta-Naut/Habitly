@@ -113,12 +113,14 @@ class ManageHabitsScreen extends StatelessWidget {
               Container(
                 width: 44,
                 height: 44,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.accentSoft,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.edit_calendar_rounded,
-                    color: AppColors.accent),
+                child: Icon(
+                  Icons.edit_calendar_rounded,
+                  color: AppColors.accent,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

@@ -10,6 +10,6 @@ void main() {
     await tester.pumpWidget(const HabitTrackerApp());
     await tester.pumpAndSettle();
 
-    expect(find.text("Today's Habits"), findsOneWidget);
+    expect(find.textContaining('Good '), findsOneWidget);
   });
 }

@@ -177,8 +177,9 @@ class _OverallView extends StatelessWidget {
                         value: item.progress,
                         minHeight: 12,
                         backgroundColor: const Color(0xFFEFEDF3),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                            AppColors.accent),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.accent,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),

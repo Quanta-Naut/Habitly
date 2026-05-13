@@ -38,6 +38,7 @@ class _AppShellState extends State<AppShell> {
               ? TodayScreen(
                   controller: _controller,
                   onAddHabit: _openHabitEditor,
+                  onDeleteHabit: (habit) => _controller.deleteHabit(habit.id),
                 )
               : const DecoratedBox(
                   decoration: BoxDecoration(color: Color(0xFF0A1020)),

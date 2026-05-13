@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'theme_controller.dart';
+
 class AppColors {
   static const Color background = Color(0xFFF8F7FC);
   static const Color surface = Colors.white;
@@ -8,6 +10,9 @@ class AppColors {
   static const Color border = Color(0xFFF2DDEA);
   static const Color accent = Color(0xFF7E8BFF);
   static const Color accentSoft = Color(0xFFE8EBFF);
+  static Color get currentAccent => ThemeController.instance.accentColor;
+  static Color get currentAccentSoft =>
+      Color.lerp(currentAccent, Colors.white, 0.82)!;
   static const Color navy = Color(0xFF6E5A8A);
   static const Color blue = Color(0xFF86C8FF);
   static const Color orange = Color(0xFFFFB38A);
