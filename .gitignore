@@ -51,4 +51,5 @@ app.*.map.json
 *.tmp
 *.temp
 .dart-local/
-
+key.properties
+**/*.jks
