@@ -219,7 +219,6 @@ class _WeekDateTile extends StatelessWidget {
                     CustomPaint(
                       painter: _DateProgressPainter(
                         progress: progress,
-                        isToday: isToday,
                       ),
                     ),
                     Padding(
@@ -266,15 +265,13 @@ class _WeekDateTile extends StatelessWidget {
 class _DateProgressPainter extends CustomPainter {
   const _DateProgressPainter({
     required this.progress,
-    required this.isToday,
   });
 
   final double progress;
-  final bool isToday;
 
   @override
   void paint(Canvas canvas, Size size) {
-    const strokeWidth = 3.0;
+    const strokeWidth = 4.5;
     final center = size.center(Offset.zero);
     final radius = (size.width / 2) - (strokeWidth / 2);
     final rect = Rect.fromCircle(center: center, radius: radius);
@@ -294,18 +291,11 @@ class _DateProgressPainter extends CustomPainter {
       );
     }
 
-    if (isToday) {
-      final todayPaint = Paint()
-        ..color = AppColors.accent.withValues(alpha: 0.28)
-        ..strokeWidth = 1
-        ..style = PaintingStyle.stroke;
-      canvas.drawCircle(center, radius + 2.5, todayPaint);
-    }
   }
 
   @override
   bool shouldRepaint(covariant _DateProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.isToday != isToday;
+    return oldDelegate.progress != progress;
   }
 }
 
@@ -459,13 +449,22 @@ class _CalendarSheetState extends State<_CalendarSheet> {
       (index) => DateTime(_visibleMonth.year, _visibleMonth.month, index + 1),
       growable: false,
     );
-    final activeDays = monthDates
-        .where((date) => widget.controller.totalActiveHabitsOn(date) > 0)
-        .length;
     final fullyCompletedDays = monthDates.where((date) {
       final total = widget.controller.totalActiveHabitsOn(date);
       return total > 0 && widget.controller.completedHabitsOn(date) == total;
     }).length;
+
+    final totalCompletions = monthDates.fold<int>(
+      0,
+      (sum, date) => sum + widget.controller.completedHabitsOn(date),
+    );
+    final totalScheduled = monthDates.fold<int>(
+      0,
+      (sum, date) => sum + widget.controller.totalActiveHabitsOn(date),
+    );
+    final completionRate = totalScheduled == 0
+        ? 0
+        : ((totalCompletions / totalScheduled) * 100).round();
 
     return Container(
       decoration: const BoxDecoration(
@@ -528,8 +527,8 @@ class _CalendarSheetState extends State<_CalendarSheet> {
               const SizedBox(width: 12),
               Expanded(
                 child: _CalendarStatCard(
-                  value: '$activeDays',
-                  label: 'Active Days',
+                  value: '$completionRate%',
+                  label: 'Completion Rate',
                 ),
               ),
             ],
@@ -689,7 +688,6 @@ class _CalendarDayCell extends StatelessWidget {
           CustomPaint(
             painter: _DateProgressPainter(
               progress: progress,
-              isToday: isToday,
             ),
           ),
         Padding(
