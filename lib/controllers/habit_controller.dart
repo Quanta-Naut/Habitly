@@ -125,7 +125,6 @@ class HabitController extends ChangeNotifier {
   bool get isLoaded => _isLoaded;
   DateTime get selectedDate => _selectedDate;
   DateTime get today => _dateOnly(DateTime.now());
-  DateTime get earliestEditableDate => today.subtract(const Duration(days: 2));
   List<Habit> get habits => List<Habit>.unmodifiable(_habits);
   bool get showHomeHint => !_homeHintDismissed;
 
@@ -138,12 +137,6 @@ class HabitController extends ChangeNotifier {
     );
   }
 
-  List<DateTime> get editableDates => List<DateTime>.generate(
-        3,
-        (index) => earliestEditableDate.add(Duration(days: index)),
-        growable: false,
-      );
-
   List<Habit> get pendingHabitsForSelectedDate => _habits
       .where((habit) => _habitIsActiveOn(habit, _selectedDate))
       .where((habit) => !isCompletedOn(habit.id, _selectedDate))
@@ -152,6 +145,10 @@ class HabitController extends ChangeNotifier {
   List<Habit> get completedHabitsForSelectedDate => _habits
       .where((habit) => _habitIsActiveOn(habit, _selectedDate))
       .where((habit) => isCompletedOn(habit.id, _selectedDate))
+      .toList(growable: false);
+
+  List<Habit> get activeHabitsForSelectedDate => _habits
+      .where((habit) => _habitIsActiveOn(habit, _selectedDate))
       .toList(growable: false);
 
   int get completedCountForSelectedDate =>
@@ -184,27 +181,19 @@ class HabitController extends ChangeNotifier {
       ..addAll(store.completions);
     _homeHintDismissed = await _repository.loadHomeHintDismissed();
     _selectedDate = _clampEditableDate(_selectedDate);
-    _sortHabits();
     _isLoaded = true;
     notifyListeners();
   }
 
   void selectDate(DateTime date) {
-    _selectedDate = _clampEditableDate(date);
+    _selectedDate = today;
     notifyListeners();
   }
 
-  bool canEditDate(DateTime date) {
-    final normalized = _dateOnly(date);
-    return !normalized.isBefore(earliestEditableDate) &&
-        !normalized.isAfter(today);
-  }
+  bool canEditDate(DateTime date) => _dateOnly(date) == today;
 
   int editableDaysLeft(DateTime date) {
-    final normalized = _dateOnly(date);
-    final age = today.difference(normalized).inDays;
-    final remaining = 2 - age;
-    return remaining < 0 ? 0 : remaining;
+    return _dateOnly(date) == today ? 1 : 0;
   }
 
   Future<void> dismissHomeHint() async {
@@ -220,7 +209,6 @@ class HabitController extends ChangeNotifier {
     final preparedHabit = await _prepareReminder(habit: habit);
     _habits.add(preparedHabit);
     _markHabitCompleted(preparedHabit.id, _habitStartDate(preparedHabit));
-    _sortHabits();
     await _save();
     notifyListeners();
   }
@@ -235,7 +223,24 @@ class HabitController extends ChangeNotifier {
     final preparedHabit =
         await _prepareReminder(habit: updated, previous: current);
     _habits[index] = preparedHabit;
-    _sortHabits();
+    await _save();
+    notifyListeners();
+  }
+
+  Future<void> reorderHabits(int oldIndex, int newIndex) async {
+    if (oldIndex < 0 || oldIndex >= _habits.length) {
+      return;
+    }
+
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+    if (newIndex < 0 || newIndex >= _habits.length) {
+      return;
+    }
+
+    final habit = _habits.removeAt(oldIndex);
+    _habits.insert(newIndex, habit);
     await _save();
     notifyListeners();
   }
@@ -342,8 +347,10 @@ class HabitController extends ChangeNotifier {
   List<HabitYearCellState> buildYearGridForHabit(Habit habit) {
     final yearStart = DateTime(today.year, 1, 1);
     final habitStart = _habitStartDate(habit);
+    final daysInYear =
+        DateTime(today.year + 1, 1, 1).difference(yearStart).inDays;
 
-    return List<HabitYearCellState>.generate(365, (index) {
+    return List<HabitYearCellState>.generate(daysInYear, (index) {
       final date = yearStart.add(Duration(days: index));
 
       if (date.isBefore(habitStart)) {
@@ -686,29 +693,11 @@ class HabitController extends ChangeNotifier {
 
   DateTime _clampEditableDate(DateTime date) {
     final normalized = _dateOnly(date);
-    if (normalized.isBefore(earliestEditableDate)) {
-      return earliestEditableDate;
-    }
-    if (normalized.isAfter(today)) {
-      return today;
-    }
-    return normalized;
+    return normalized == today ? today : today;
   }
 
   Future<void> _save() {
     return _repository.save(habits: _habits, completions: _completions);
-  }
-
-  void _sortHabits() {
-    _habits.sort((left, right) {
-      final reminderLeft = left.reminderHour ?? 99;
-      final reminderRight = right.reminderHour ?? 99;
-      final compareReminder = reminderLeft.compareTo(reminderRight);
-      if (compareReminder != 0) {
-        return compareReminder;
-      }
-      return left.title.toLowerCase().compareTo(right.title.toLowerCase());
-    });
   }
 
   int _nextNotificationId() {

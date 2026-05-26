@@ -14,12 +14,18 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   late final HabitController _controller;
+  bool _showBrandScreen = true;
 
   @override
   void initState() {
     super.initState();
     _controller = HabitController();
     _controller.initialize();
+    Future<void>.delayed(const Duration(milliseconds: 900), () {
+      if (mounted) {
+        setState(() => _showBrandScreen = false);
+      }
+    });
   }
 
   @override
@@ -34,15 +40,31 @@ class _AppShellState extends State<AppShell> {
       animation: _controller,
       builder: (context, _) {
         return Scaffold(
-          body: _controller.isLoaded
+          body: _controller.isLoaded && !_showBrandScreen
               ? TodayScreen(
                   controller: _controller,
                   onAddHabit: _openHabitEditor,
                   onDeleteHabit: (habit) => _controller.deleteHabit(habit.id),
                 )
-              : const DecoratedBox(
-                  decoration: BoxDecoration(color: Color(0xFF0A1020)),
-                  child: Center(child: CircularProgressIndicator()),
+              : DecoratedBox(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFFFCFBFF), Color(0xFFF6F2FB)],
+                    ),
+                  ),
+                  child: Center(
+                    child: const Text(
+                      'Habitly.',
+                      style: TextStyle(
+                        color: Color(0xFF392747),
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
                 ),
         );
       },

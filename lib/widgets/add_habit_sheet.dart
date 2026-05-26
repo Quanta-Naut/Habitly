@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../models/habit.dart';
 import '../theme/app_theme.dart';
-import '../theme/theme_controller.dart';
 
 class AddHabitSheet extends StatefulWidget {
   const AddHabitSheet({
@@ -20,12 +19,18 @@ class AddHabitSheet extends StatefulWidget {
 
 class _AddHabitSheetState extends State<AddHabitSheet> {
   static const _colors = <Color>[
-    AppColors.blue,
-    AppColors.orange,
-    AppColors.purple,
-    Color(0xFFFF6B86),
-    AppColors.green,
-    Color(0xFFEF6C8F),
+    Color(0xFFF58BC3),
+    Color(0xFF5CC3F5),
+    Color(0xFF97E9B5),
+    Color(0xFFF9E35F),
+    Color(0xFFB09AFB),
+    Color(0xFFF6B06A),
+    Color(0xFF66E7CF),
+    Color(0xFFF68E8E),
+    Color(0xFF8FA2FB),
+    Color(0xFFF9C792),
+    Color(0xFF67E28F),
+    Color(0xFFEA93F5),
   ];
 
   static const _icons = <IconData>[
@@ -181,7 +186,7 @@ class _AddHabitSheetState extends State<AddHabitSheet> {
                 child: FilledButton(
                   onPressed: _isSaving ? null : _save,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ThemeController.instance.accentColor,
+                    backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
