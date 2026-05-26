@@ -203,6 +203,9 @@ class _GridPanelState extends State<_GridPanel> {
                       );
                       final isVisibleDate =
                           !date.isBefore(yearStart) && !date.isAfter(today);
+                      final isTodayDate = date.year == today.year &&
+                          date.month == today.month &&
+                          date.day == today.day;
 
                       final HabitYearCellState? state = isVisibleDate
                           ? widget.yearGrid[date.difference(yearStart).inDays]
@@ -218,6 +221,12 @@ class _GridPanelState extends State<_GridPanel> {
                           decoration: BoxDecoration(
                             color: _cellColor(state, widget.color),
                             borderRadius: BorderRadius.circular(4),
+                            border: isTodayDate
+                                ? Border.all(
+                                    color: widget.color.withValues(alpha: 0.6),
+                                    width: 1.5,
+                                  )
+                                : null,
                           ),
                         ),
                       );

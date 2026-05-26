@@ -113,6 +113,7 @@ class _AddHabitSheetState extends State<AddHabitSheet> {
               TextField(
                 controller: _titleController,
                 textInputAction: TextInputAction.done,
+                textCapitalization: TextCapitalization.sentences,
                 decoration: const InputDecoration(hintText: 'Habit name'),
               ),
               const SizedBox(height: 20),
