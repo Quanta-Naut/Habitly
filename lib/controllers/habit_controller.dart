@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 
 import '../models/habit.dart';
 import '../services/habit_repository.dart';
-import '../services/notification_service.dart';
 
 enum InsightsRange { overall, week, month }
 
@@ -107,13 +106,9 @@ class HeatmapDay {
 class HabitController extends ChangeNotifier {
   HabitController({
     HabitRepository? repository,
-    NotificationService? notificationService,
-  })  : _repository = repository ?? HabitRepository(),
-        _notificationService =
-            notificationService ?? NotificationService.instance;
+  })  : _repository = repository ?? HabitRepository();
 
   final HabitRepository _repository;
-  final NotificationService _notificationService;
 
   final List<Habit> _habits = <Habit>[];
   final Map<String, List<String>> _completions = <String, List<String>>{};
@@ -206,9 +201,8 @@ class HabitController extends ChangeNotifier {
   }
 
   Future<void> addHabit(Habit habit) async {
-    final preparedHabit = await _prepareReminder(habit: habit);
-    _habits.add(preparedHabit);
-    _markHabitCompleted(preparedHabit.id, _habitStartDate(preparedHabit));
+    _habits.add(habit);
+    _markHabitCompleted(habit.id, _habitStartDate(habit));
     await _save();
     notifyListeners();
   }
@@ -219,10 +213,7 @@ class HabitController extends ChangeNotifier {
       return;
     }
 
-    final current = _habits[index];
-    final preparedHabit =
-        await _prepareReminder(habit: updated, previous: current);
-    _habits[index] = preparedHabit;
+    _habits[index] = updated;
     await _save();
     notifyListeners();
   }
@@ -249,10 +240,6 @@ class HabitController extends ChangeNotifier {
     final existing = _habits.where((habit) => habit.id == habitId).firstOrNull;
     if (existing == null) {
       return;
-    }
-
-    if (existing.notificationId != null) {
-      await _notificationService.cancelNotification(existing.notificationId!);
     }
 
     _habits.removeWhere((habit) => habit.id == habitId);
@@ -307,12 +294,6 @@ class HabitController extends ChangeNotifier {
   }
 
   Future<void> resetAllData() async {
-    for (final habit in _habits) {
-      if (habit.notificationId != null) {
-        await _notificationService.cancelNotification(habit.notificationId!);
-      }
-    }
-
     _habits.clear();
     _completions.clear();
     await _repository.clear();
@@ -565,39 +546,6 @@ class HabitController extends ChangeNotifier {
   int totalActiveHabitsOn(DateTime date) =>
       _activeHabitsOnDate(_dateOnly(date)).length;
 
-  Future<Habit> _prepareReminder({
-    required Habit habit,
-    Habit? previous,
-  }) async {
-    if (previous?.notificationId != null &&
-        (habit.reminderHour == null || habit.reminderMinute == null)) {
-      await _notificationService.cancelNotification(previous!.notificationId!);
-      return habit.copyWith(clearNotification: true);
-    }
-
-    if (habit.reminderHour == null || habit.reminderMinute == null) {
-      return habit.copyWith(clearNotification: true);
-    }
-
-    final currentNotificationId = previous?.notificationId ??
-        habit.notificationId ??
-        _nextNotificationId();
-
-    if (previous?.notificationId != null) {
-      await _notificationService.cancelNotification(previous!.notificationId!);
-    }
-
-    await _notificationService.scheduleDailyNotification(
-      id: currentNotificationId,
-      hour: habit.reminderHour!,
-      minute: habit.reminderMinute!,
-      title: 'Habit reminder',
-      body: habit.title,
-    );
-
-    return habit.copyWith(notificationId: currentNotificationId);
-  }
-
   void _markHabitCompleted(String habitId, DateTime date) {
     final targetDate = _dateOnly(date);
     final key = _dateKey(targetDate);
@@ -698,10 +646,6 @@ class HabitController extends ChangeNotifier {
 
   Future<void> _save() {
     return _repository.save(habits: _habits, completions: _completions);
-  }
-
-  int _nextNotificationId() {
-    return DateTime.now().microsecondsSinceEpoch.remainder(1 << 31);
   }
 }
 

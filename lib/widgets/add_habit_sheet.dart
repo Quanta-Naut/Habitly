@@ -230,9 +230,6 @@ class _AddHabitSheetState extends State<AddHabitSheet> {
       iconCodePoint: _selectedIcon.codePoint,
       frequencyLabel: existing?.frequencyLabel ?? 'Every day',
       createdAt: existing?.createdAt ?? DateTime.now().toIso8601String(),
-      reminderHour: existing?.reminderHour,
-      reminderMinute: existing?.reminderMinute,
-      notificationId: existing?.notificationId,
     );
 
     await widget.onSave(habit);
